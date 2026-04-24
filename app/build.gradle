@@ -1,0 +1,66 @@
+apply plugin: 'com.android.application'
+
+
+
+android {
+    compileSdkVersion 30
+
+    lintOptions{
+        checkReleaseBuilds false
+    }
+
+    defaultConfig {
+        applicationId "com.c3labs.com_dss"
+        minSdkVersion 22
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0.3"
+        multiDexEnabled true
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    namespace 'com.c3labs.dss'
+
+//    configurations {
+//        all {
+//            exclude group: 'org.json', module: 'json'
+////            exclude group: 'stax', module: 'stax-api'
+//        }
+//    }
+
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.3.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation files('libs\\classes.jar')
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+
+    // https://mvnrepository.com/artifact/com.sun.jersey/jersey-client
+//    compile 'com.sun.jersey:jersey-client:1.9.1'
+
+    // https://mvnrepository.com/artifact/stax/stax-api
+//    compile group: 'stax', name: 'stax-api', version: '1.0'
+
+    // https://mvnrepository.com/artifact/javax.xml.stream/stax-api
+//    compile 'javax.xml.stream:stax-api:1.0-2'
+
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation 'org.json:json:20160810'
+    implementation 'org.greenrobot:eventbus:3.2.0'
+    //
+
+}
