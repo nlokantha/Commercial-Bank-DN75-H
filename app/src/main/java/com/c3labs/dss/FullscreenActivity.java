@@ -174,6 +174,16 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
     private int mDesiredPreviewWidth;
     private AudioStream mAudioStream;
     private CamcorderProfile mProfile;
+    private boolean mHdmiPreviewStarted = false;
+    private boolean mHdmiSurfaceReady = false;
+    private boolean isStartAudio = false;
+    private final Handler mHdmiHandler = new Handler();
+    private final Runnable mRetryShowHdmiRunnable = new Runnable() {
+        @Override
+        public void run() {
+            showHDMI();
+        }
+    };
 
     private File mFile_setwaittime = null;
 
@@ -471,6 +481,7 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
                         selectedSchedule = -1;
                         changeAdFull = false;
 
+
                         //                currentLayoutDetails = loadLayout();
                         setView("AdFull");
                         loadLayoutSchedules();
@@ -522,15 +533,18 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
 
     private void loadLayoutSchedules() {
         if (currentLayoutDetails != null) {
-            Toast.makeText(this, currentLayoutDetails[0], Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, currentLayoutDetails[0], Toast.LENGTH_SHORT).show();
             if (currentLayoutDetails[0].equalsIgnoreCase("CurrencyHDMI")) {
                 if (hdmiSuraface == null){
                     hdmiSuraface = currencyView.findViewById(R.id.home_ac_hdmi);
                 }
                 hdmiSuraface.setVisibility(View.VISIBLE);
-                webView.setVisibility(View.VISIBLE);
-                if (webView.getUrl() == null)
+
+                if (webView.getUrl() == null) {
                     webView.loadUrl(Refferences.GetCurrency.method);
+                }
+                webView.setVisibility(View.VISIBLE);
+                webViewFull.setVisibility(View.GONE);
                 currencyMediaWrapper.setVisibility(View.GONE);
                 showHDMI();
                 animateFullWebView(false);
@@ -539,6 +553,7 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
 
             } else if (currentLayoutDetails[0].equalsIgnoreCase("BannerHDMI")) {
                 webView.setVisibility(View.GONE);
+                webViewFull.setVisibility(View.GONE);
                 if (hdmiSuraface == null){
                     hdmiSuraface = currencyView.findViewById(R.id.home_ac_hdmi);
                 }
@@ -562,17 +577,37 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
     }
 
     private void showHDMI() {
-        if (null != mCamera) return;
-        openCamera();
+        if (hdmiSuraface == null) {
+            return;
+        }
+
+        if (mSurfaceHolder == null) {
+            mSurfaceHolder = hdmiSuraface.getHolder();
+        }
+
+        boolean surfaceReady = mSurfaceHolder != null
+                && mSurfaceHolder.getSurface() != null
+                && mSurfaceHolder.getSurface().isValid()
+                && hdmiSuraface.getWidth() > 0
+                && hdmiSuraface.getHeight() > 0;
+
+        if (!surfaceReady) {
+            mHdmiHandler.removeCallbacks(mRetryShowHdmiRunnable);
+            mHdmiHandler.postDelayed(mRetryShowHdmiRunnable, 250);
+            return;
+        }
+
+        mHdmiHandler.removeCallbacks(mRetryShowHdmiRunnable);
+        mHdmiSurfaceReady = true;
+
+        if (mHdmiPreviewStarted) {
+            return;
+        }
+
+        if (mCamera == null) {
+            openCamera();
+        }
         StartPreview();
-        if (hdmiSuraface.getHeight() == 0)
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    releaseCameraResource();
-                    showHDMI();
-                }
-            }, 1000);
     }
 
     private void setHDMIAlignments(boolean right) {
@@ -593,7 +628,6 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
         if (show) {
             allHDMIWrapper.setVisibility(View.GONE);
             webViewFull.setVisibility(View.VISIBLE);
-//            Namal edit this.........................
             if (webViewFull.getUrl() == null || webViewFull.getHeight() == 0) {
                 webViewFull.loadUrl(Refferences.GetProduct.method);
             }
@@ -627,7 +661,7 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
     }
 
     private void setHeartBeatPacket() {
-        if (currentSecond >= 30) {
+        if (currentSecond >= 120) {
             new Methods().saveToTextFile(new Date() + "\n\n", "/beat.txt");
             currentSecond = 0;
             new AsyncWebService(this, MyConstants.HEART_BEAT).execute(Refferences.UpdateNodeStatus.methodName + Methods.getNodeId(FullscreenActivity.this));
@@ -1617,6 +1651,7 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         mSurfaceHolder = surfaceHolder;
+        mHdmiSurfaceReady = false;
 //        try {
 //            if (mCamera == null) {
 //                openCamera();
@@ -1633,11 +1668,19 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
         mSurfaceHolder = surfaceHolder;
+        mHdmiSurfaceReady = mSurfaceHolder != null
+                && mSurfaceHolder.getSurface() != null
+                && mSurfaceHolder.getSurface().isValid()
+                && i1 > 0
+                && i2 > 0;
         Log.d(TAG, "surfaceChanged");
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        mHdmiHandler.removeCallbacks(mRetryShowHdmiRunnable);
+        mHdmiSurfaceReady = false;
+        mHdmiPreviewStarted = false;
         hdmiSuraface = null;
         mSurfaceHolder = null;
 //        releaseMediaRecorder();
@@ -1703,7 +1746,15 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
 
     public void StartPreview() {
         if (mCamera != null) {
-            mCamera.stopPreview();
+            if (mHdmiPreviewStarted) {
+                return;
+            }
+            if (!mHdmiSurfaceReady || mSurfaceHolder == null
+                    || mSurfaceHolder.getSurface() == null
+                    || !mSurfaceHolder.getSurface().isValid()) {
+                Log.d(TAG, "StartPreview skipped: surface not ready");
+                return;
+            }
             readVideoPreferences();
             try {
                 mCamera.setErrorCallback(mErrorCallback);
@@ -1743,25 +1794,30 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
                 // Keep preview size up to date.
                 mParameters = mCamera.getParameters();
 
-                mCamera.setPreviewDisplay(hdmiSuraface.getHolder());
+                mCamera.setPreviewDisplay(mSurfaceHolder);
             } catch (Exception ex) {
                 Log.d(TAG, "setPreviewDisplay Exception: " + ex);
                 ex.printStackTrace();
             }
             try {
                 mCamera.startPreview();
+                mHdmiPreviewStarted = true;
 //                if (!isStartAudio)
                 EnableHDMIInAudio(true);
             } catch (Exception e) {
                 Log.d(TAG, "startPreview Exception: " + e);
                 e.printStackTrace();
+                mHdmiPreviewStarted = false;
                 closeCamera();
             }
         }
     }
 
     private void EnableHDMIInAudio(boolean enable) {
-//        isStartAudio = enable;
+        if (isStartAudio == enable) {
+            return;
+        }
+        isStartAudio = enable;
         if (enable) {
             mAudioStream.start(5);
         } else {
@@ -1775,9 +1831,14 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
             Log.d("ccxbg", "already stopped.");
             return;
         }
-        mCamera.setZoomChangeListener(null);
-        mCamera.setErrorCallback(null);
-        hdmiSuraface.getHolder().getSurface().release();
+        try {
+            mCamera.setZoomChangeListener(null);
+            mCamera.setErrorCallback(null);
+            mCamera.release();
+        } catch (Exception e) {
+            Log.d("ccxbg", "closeCamera exception: " + e);
+        }
+        mHdmiPreviewStarted = false;
         mCamera = null;
     }
 
@@ -1881,10 +1942,14 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
         EnableHDMIInAudio(false);
         if (mCamera != null) {
             mCamera.setPreviewCallback(null);
-            mCamera.stopPreview();
+            try {
+                mCamera.stopPreview();
+            } catch (Exception ignored) {
+            }
             mCamera.lock();
             mCamera.release();
             mCamera = null;
         }
+        mHdmiPreviewStarted = false;
     }
 }

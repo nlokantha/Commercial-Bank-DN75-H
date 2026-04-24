@@ -28,6 +28,14 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    sourceSets {
+        main {
+            java {
+                // Keep refFiles in repo for reference, but do not compile them into this app.
+                exclude 'com/c3labs/dss/refFiles/**'
+            }
+        }
+    }
     namespace 'com.c3labs.dss'
 
 //    configurations {
