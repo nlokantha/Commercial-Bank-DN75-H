@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/colorBlack"
-        android:visibility="gone">
+        android:visibility="visible">
 
 
         <RelativeLayout
@@ -22,6 +22,7 @@
                 android:id="@+id/webV_ProductLayoutCurrencyV"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:visibility="gone"
                 android:background="@color/colorBlack">
 
             </WebView>
@@ -30,6 +31,7 @@
                 android:id="@+id/webV_CurrencyLayoutCurrencyV"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:visibility="gone"
                 android:layout_alignParentBottom="true">
 
             </WebView>

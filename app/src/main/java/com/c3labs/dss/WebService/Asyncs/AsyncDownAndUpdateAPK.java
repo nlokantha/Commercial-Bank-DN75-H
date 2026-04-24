@@ -30,6 +30,8 @@ public class AsyncDownAndUpdateAPK extends AsyncTask<String, Void, String> {
     String path = Methods.createOrGetDirectory().toString();
     String TAG = "AsyncDownAndUpdateAPK";
 
+    boolean downloadSuccess = false;
+
     Context context;
 
     public AsyncDownAndUpdateAPK(Context context) {
@@ -61,16 +63,23 @@ public class AsyncDownAndUpdateAPK extends AsyncTask<String, Void, String> {
             while ((bytesRead = input.read(buffer, 0, buffer.length)) >= 0) {
                 output.write(buffer, 0, bytesRead);
             }
+            downloadSuccess = true;
         } catch (IOException e) {
+            downloadSuccess = false;
             file.delete();
             Log.d("updateapp", "cant download apk......");
 
         } finally {
             try {
-                output.close();
-                input.close();
-                installApp(path);
+                if (output != null) {
+                    output.close();
+                }
+                if (input != null) {
+                    input.close();
+                }
+
             } catch (IOException e) {
+                Log.d(TAG, "Error in closing stream");
                 e.printStackTrace();
             }
         }
@@ -80,6 +89,19 @@ public class AsyncDownAndUpdateAPK extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         Log.d(TAG, "onPostExecute: Done-----------Updated");
+        // Only install if download was successful
+        if (!downloadSuccess) {
+            Log.d(TAG,"APK download failed, skipping installation");
+            super.onPostExecute(s);
+            return;
+        }
+
+        File apkFile = new File(path + apkName);
+        if (apkFile.exists()) {
+            installApp(path);
+        } else {
+            Log.d(TAG, "APK file does not exist");
+        }
         super.onPostExecute(s);
     }
 
@@ -107,8 +129,6 @@ public class AsyncDownAndUpdateAPK extends AsyncTask<String, Void, String> {
             e.printStackTrace();
         }
     }
-
-//    Namal add this file..............
 
 //    private void installApp(String path) throws IOException {
 //        for (int i = 0; i < 5; i++) {

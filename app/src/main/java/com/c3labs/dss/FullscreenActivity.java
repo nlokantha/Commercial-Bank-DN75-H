@@ -427,9 +427,6 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
 
     private void setTimePlusCheckDownloadingTimePlusAdHoc() {
         try {
-//            if(simpleDateFormatTime.format(date = new Date()).equals("08:30:00")){
-//                MyExceptionHandler.restartApp(FullscreenActivity.this, Splash.class, new Exception("Restarted On C3 press"));
-//            }
             dateTime.setText(simpleDateFormatFull.format(date = new Date()));
             checkDownloadTime(date = simpleDateFormatTime.parse(simpleDateFormatTime.format(date)));
             if (dateTVOnwards != null) {
@@ -483,8 +480,7 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
                         adHocStatus = MyConstants.PLAYING;
                     }
                     break;
-                    //                return;
-                    //                changeAdFull = false;
+
 //                    =======================================AdHoc End Function
                 } else if (date.equals(adHDate[2]) ||
                         (date.after(adHDate[2]) && date.before(adHDate[3]))) {
@@ -498,8 +494,6 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
                             adHocStatus = MyConstants.NOT_LOADED;
                         }
                         tvOnwardsStatus = MyConstants.NOT_LOADED;
-                        //                return;
-                        //                changeAdFull = false;
                     }
                     break;
                 }
@@ -529,7 +523,10 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
     private void loadLayoutSchedules() {
         if (currentLayoutDetails != null) {
             Toast.makeText(this, currentLayoutDetails[0], Toast.LENGTH_SHORT).show();
-            if (currentLayoutDetails[0].equalsIgnoreCase("CurrencyTV")) {
+            if (currentLayoutDetails[0].equalsIgnoreCase("CurrencyHDMI")) {
+                if (hdmiSuraface == null){
+                    hdmiSuraface = currencyView.findViewById(R.id.home_ac_hdmi);
+                }
                 hdmiSuraface.setVisibility(View.VISIBLE);
                 webView.setVisibility(View.VISIBLE);
                 if (webView.getUrl() == null)
@@ -541,12 +538,16 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
 
 
             } else if (currentLayoutDetails[0].equalsIgnoreCase("BannerHDMI")) {
+                webView.setVisibility(View.GONE);
+                if (hdmiSuraface == null){
+                    hdmiSuraface = currencyView.findViewById(R.id.home_ac_hdmi);
+                }
                 hdmiSuraface.setVisibility(View.VISIBLE);
                 Log.d(TAG, "loadLayoutSchedules: " + "********************");
                 currencyMediaWrapper.setVisibility(View.VISIBLE);
                 showHDMI();
                 animateFullWebView(false);
-                webView.setVisibility(View.GONE);
+
                 setHDMIAlignments(false);
             }
 
@@ -794,30 +795,12 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
     private void loadLayouts(boolean resetApp) {
 //        try {
         if (adFullView == null) {
-//                for (int i = 0; i < templateSeqJsonArray.length(); i++) {
-//                    if (templateSeqJsonArray.getJSONObject(i).getString("TemplateName").equalsIgnoreCase("AdFull")) {
             dynamic.addView(adFullView = inflater.inflate(R.layout.layout_ad_full, null));
 
             imageViewAdFull = adFullView.findViewById(R.id.img_MyFullLayoutAdFull);
             mPreview = adFullView.findViewById(R.id.vid_MyFullLayoutAdFull);
             mPreview.setSurfaceTextureListener(this);
-//            mMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-//                @Override
-//                public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-//                    handlerSchedules.postDelayed(runnableSchedules, 10);
-//                    Log.d(TAG, "onError: VidAdFull++++++++++++++");
-//                    return true;
-//                }
-//            });
-//            videoViewAdFull.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-//                @Override
-//                public void onPrepared(MediaPlayer mediaPlayer) {
-//                    mpAdFull = mediaPlayer;
-//                }
-//            });               14:27:07.311
-//                        break;
-//                    }
-//                }
+
         }
         if (!resetApp && currencyView == null) {
 
@@ -967,25 +950,6 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
         calendar.add(Calendar.SECOND, 10);
         return calendar.getTime();
     }
-
-    //
-//    private void scheduleAdFullConfigs(String typeArray, String playlistScheduleId) {
-//        if (adFullArray != null) {
-//            if (!adFullArray[0].equalsIgnoreCase(typeArray)) {
-//                adFullArray[0] = typeArray;
-//                adFullArray[1] = playlistScheduleId;
-//                selectedSchedule = -1;
-//
-//            } else if (adFullArray[0].equalsIgnoreCase(MyConstants.SCHEDULE_ARRAY) && !adFullArray[1].equalsIgnoreCase(playlistScheduleId)) {
-//                adFullArray[1] = playlistScheduleId;
-//                selectedSchedule = -1;
-//            }
-//        } else {
-//            adFullArray = new String[]{typeArray, playlistScheduleId};
-//            selectedSchedule = -1;
-//        }
-//    }
-
     private Date getDateFromString(String format) throws ParseException {
         return simpleDateFormatTime.parse(format);
     }
@@ -998,44 +962,8 @@ public class FullscreenActivity extends AppCompatActivity implements TextureView
             currencyView.setVisibility(View.GONE);
             adFullView.setVisibility(View.VISIBLE);
             webViewFull.setVisibility(View.GONE);
-//            currencyView.startAnimation(AnimationUtils.loadAnimation(FullscreenActivity.this, R.anim.fade_out));
-//            adFullView.startAnimation(AnimationUtils.loadAnimation(FullscreenActivity.this, R.anim.fade_in));
-//            adFullView.getAnimation().setAnimationListener(new Animation.AnimationListener() {
-//                @Override
-//                public void onAnimationStart(Animation animation) {
-//
-//                }
-//
-//                @Override
-//                public void onAnimationEnd(Animation animation) {
-//                    webViewFull.setVisibility(View.GONE);
-//                }
-//
-//                @Override
-//                public void onAnimationRepeat(Animation animation) {
-//
-//                }
-//            });
+
         } else {
-//            if (currentLayoutDetails != null && currentLayoutDetails[0].equalsIgnoreCase("AdFull")) {
-//                stopVideoView();
-//                mPreview.setVisibility(View.GONE);
-////                if (mpAdFull != null) {
-////                    mpAdFull.release();
-////                }
-//                if (currencyView != null) {
-//                    currencyView.startAnimation(AnimationUtils.loadAnimation(FullscreenActivity.this, R.anim.fade_in));
-//                } else {
-//                    return;
-//                }
-//                adFullView.startAnimation(AnimationUtils.loadAnimation(FullscreenActivity.this, R.anim.fade_out));
-//            } else {
-////                adFullView.setAlpha(0);
-//                if (currencyView.getAnimation() != null) {
-//                    currencyView.getAnimation().reset();
-//                }
-//
-//            }
             if (currencyView != null) {
                 mPreview.setVisibility(View.GONE);
                 currencyView.setVisibility(View.VISIBLE);

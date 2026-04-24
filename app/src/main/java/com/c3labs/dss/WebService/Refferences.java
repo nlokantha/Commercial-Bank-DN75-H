@@ -5,9 +5,9 @@ package com.c3labs.dss.WebService;
  */
 
 public class Refferences {
-//        public static String url = "https://c3dss-test-dss-coman-webapp-mldcjaui.azurewebsites.net/";
+        public static String url = "https://c3dss-test-dss-coman-webapp-mldcjaui.azurewebsites.net/";
 //        public static String url = "https://rocell.c3dss.com/";
-        public static String url = "https://seylan.c3dss.com/";
+//        public static String url = "https://seylan.c3dss.com/";
 
 //    public static String url = "https://signage.combank.net/exchange/";
 
